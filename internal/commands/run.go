@@ -64,6 +64,7 @@ var (
 // Tart-related flags.
 var tartLazyPull bool
 var tartRunArgs []string
+var tartNoCleanup bool
 
 // Tart-related flags (experimental).
 var tartNoUnmount bool
@@ -205,6 +206,7 @@ func run(cmd *cobra.Command, args []string) error {
         LazyPull: lazyPull || tartLazyPull,
 		NoUnmount: tartNoUnmount,
         RunArgs:  tartRunArgs,
+        NoCleanup: tartNoCleanup,
     }))
 
 	// Vetu-related options
@@ -310,6 +312,8 @@ func newRunCmd() *cobra.Command {
 		"attempt to pull Tart VM images only if they are missing locally (helpful in case of registry rate limits)")
     cmd.PersistentFlags().StringArrayVar(&tartRunArgs, "tart-arg", []string{},
         "additional arguments to pass to 'tart run' (e.g., --disk=/path.sparseimage)")
+    cmd.PersistentFlags().BoolVar(&tartNoCleanup, "tart-no-cleanup", false,
+        "keep the Tart VM after the task instead of deleting it (e.g. to promote a warmed clone into a base image)")
 
 	// Tart-related flags (experimental)
 	cmd.PersistentFlags().BoolVar(&tartNoUnmount, "tart-no-unmount", false,

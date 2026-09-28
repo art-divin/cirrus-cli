@@ -254,7 +254,7 @@ func (vm *VM) Info(ctx context.Context) (*Info, error) {
 	return &info, nil
 }
 
-func (vm *VM) Close() error {
+func (vm *VM) Close(deleteVM bool) error {
 	ctx := trace.ContextWithSpan(context.Background(), trace.SpanFromContext(vm.runningVMCtx))
 
 	// Try to gracefully terminate the VM
@@ -263,6 +263,11 @@ func (vm *VM) Close() error {
 
 	vm.runningVMCtxCancel()
 	vm.wg.Wait()
+
+	// Keep the stopped VM (e.g. to promote it into a base image) when cleanup is disabled.
+	if !deleteVM {
+		return nil
+	}
 
 	_, _, err := Cmd(ctx, vm.env, "delete", vm.ident)
 

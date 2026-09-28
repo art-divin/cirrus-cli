@@ -57,6 +57,7 @@ type Tart struct {
 	volumes         []*api.Isolation_Tart_Volume
 	syncTimeOverSSH bool
     extraRunArgs    []string
+    noCleanup       bool
 
 	vm              *VM
 	initializeHooks []remoteagent.WaitForAgentHook
@@ -349,6 +350,8 @@ func (tart *Tart) Run(ctx context.Context, config *runconfig.RunConfig) (err err
 	if tart.vm != nil && config.DirtyMode {
 		return fmt.Errorf("%w: dirty mode is not supported for a warmed instance", ErrFailed)
 	}
+    // keep the VM after the task if requested (e.g. to promote it into a base image)
+    tart.noCleanup = config.TartOptions.NoCleanup
     if tart.vm == nil {
         // propagate extra run args from run config
         if len(config.TartOptions.RunArgs) != 0 {
@@ -451,7 +454,7 @@ func (tart *Tart) Close(ctx context.Context) error {
 		}, nil)
 	}
 
-	return tart.vm.Close()
+	return tart.vm.Close(!tart.noCleanup)
 }
 
 func Cleanup() error {
